@@ -1,0 +1,5 @@
+# подсветка синтаксиса библиотеки
+
+SimpleButton KEYWORD1
+begin KEYWORD2
+clicked KEYWORD2
