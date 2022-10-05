@@ -1,31 +1,51 @@
-void switches(byte mode, byte counter, byte* hours, byte* mins,  byte* secs, byte* customChar) {
+void switches(byte mode, byte counter, byte hours, byte mins, byte secs, byte* customChar) {
   lcd.createChar(7, customChar);
   lcd.setCursor(0, 0);
   lcd.write(7);
   switch (mode) {
     case 0:
-      lcd.print("Paбoтa: ");
+      lcd.print("Work:   ");
       break;
     case 1:
-      lcd.print("Отдых: ");
+      lcd.print("Relax: ");
       break;
     case 2:
-      lcd.print("Оффлайн:");
+      lcd.print("Offline:");
       break;
   }
-  lcd.print(String(*hours));
+  lcd.print(hours);
   lcd.print(":");
-  lcd.print(String(*mins));
+  if (mins < 10) lcd.print("0");
+  lcd.print(mins);
   lcd.print(":");
-  lcd.print(String(*secs));
+  if (secs < 10) lcd.print("0");
+  lcd.print(secs);
+
+  if (counter == 10) {
+    lcd.setCursor(0, 1);
+    lcd.print("Time to warm up!");
+    return;
+  }
+  // if (counter == 11) {
+  //   lcd.setCursor(0, 1);
+  //   lcd.print(" Time to relax! ");
+  //   return;
+  // }
+  if (counter == 12) {
+    lcd.setCursor(0, 1);
+    lcd.print(" Time to work!  ");
+    return;
+  }
+
   if (counter == 0) {
-    dht1.temp = dht.readTemperature();
-    dht1.hum = dht.readHumidity();
+    float temp = dht.readTemperature();
+    float hum = dht.readHumidity();
     lcd.setCursor(0, 1);
     lcd.print("t:");
-    lcd.print(dht1.temp, 1);
-    lcd.print("°C B:");
-    lcd.print(dht1.hum, 1);
+    lcd.print(temp, 1);
+    lcd.write(223);
+    lcd.print("C B:");
+    lcd.print(hum, 1);
     lcd.print("%");
     return;
   }
@@ -65,7 +85,7 @@ void switches(byte mode, byte counter, byte* hours, byte* mins,  byte* secs, byt
     }
     lcd.write(6);
     lcd.print("  ");
-    lcd.print(String(numberDrinks));
+    lcd.print(numberDrinks);
     lcd.print("/10");
     return;
   }
@@ -89,5 +109,7 @@ void switches(byte mode, byte counter, byte* hours, byte* mins,  byte* secs, byt
   lcd.write(4);
   for (byte i = 0; i < 8; i++) lcd.write(5);
   lcd.write(6);
-  lcd.print(" 10/10");
+  lcd.print(" ");
+  lcd.print(numberDrinks);
+  lcd.print("/10");
 }
