@@ -85,10 +85,21 @@ static void playSplash() {
   delay(750);
 }
 
+// Сон на ms миллисекунд. В режиме SIMULATION — обычная задержка
+void sleepFor(uint32_t ms) {
+#if SIMULATION
+  delay(ms);
+#else
+  power.sleepDelay(ms);
+#endif
+}
+
 void setup() {
   power.hardwareEnable(PWR_ALL);
-  power.calibrate(8000);
-  power.correctMillis(true);
+#if !SIMULATION
+  power.autoCalibrate();     // измеряет реальный период watchdog, чтобы сон был точнее
+  power.correctMillis(true); // millis() учитывает время, проведённое во сне
+#endif
 
   pinMode(SEN_VCC, OUTPUT);
   pinMode(BUZ_VCC, OUTPUT);
@@ -203,7 +214,7 @@ void loop() {
   digitalWrite(SEN_VCC, LOW);
   lcd.noBacklight();
   lcd.noDisplay();
-  power.sleepDelay(3000);
+  sleepFor(3000);
   digitalWrite(SEN_VCC, HIGH);
   delay(100);
   lcd.backlight();

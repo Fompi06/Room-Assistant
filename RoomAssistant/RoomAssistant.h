@@ -47,6 +47,7 @@ extern uint32_t lastSettingsSave;
 
 // Setup.cpp — запуск, заставка, быстрые профили
 void loadGlyph(byte slot, const byte* glyphInFlash);
+void sleepFor(uint32_t ms);
 bool applyQuickProfile();
 byte beginRun();
 

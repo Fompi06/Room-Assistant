@@ -90,7 +90,7 @@ byte runModeEco(byte mode) {
     if (!run.missed) digitalWrite(RED, LOW);
 
     if (powerState != POWER_ACTIVE) {
-      power.sleepDelay(16);  // пока спим, кнопки опрашивает прерывание
+      sleepFor(16);  // пока спим, кнопки опрашивает прерывание
     } else {
       delay(10);
       const byte next = pollModeButtons(mode);
