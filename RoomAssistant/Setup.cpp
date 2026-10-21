@@ -141,21 +141,49 @@ static void applyProfile(const __FlashStringHelper* title, int work, int relax, 
   showProfile(title, work, relax, offline);
 }
 
+const uint16_t SECOND_BUTTON_WAIT = 400;  // сколько ждать вторую кнопку, мс
+
 // Если удерживается красная и/или жёлтая кнопка — применяет профиль и возвращает true
 bool applyQuickProfile() {
-  if (redbtn.hold() && yellowbtn.hold()) {
+  bool red = redbtn.hold();
+  bool yellow = yellowbtn.hold();
+  if (!red && !yellow) return false;
+
+  // Удержание каждой кнопки фиксируется отдельно, примерно через секунду после её нажатия.
+  // Если нажаты обе, вторая «дозревает» чуть позже — даём ей время.
+  const uint32_t start = millis();
+  while (!(red && yellow) && millis() - start < SECOND_BUTTON_WAIT) {
+    redbtn.tick();
+    yellowbtn.tick();
+    red |= redbtn.hold();
+    yellow |= yellowbtn.hold();
+  }
+
+  if (red && yellow) {
     applyProfile(F("Notif. disabled"), 600, 600, 600);  // 10 часов — уведомления практически отключены
     return true;
   }
-  if (redbtn.hold()) {
+  if (red) {
     applyProfile(F("Mode 1 activated"), OnlineTime1, RelaxTime1, OffTime1);
     return true;
   }
-  if (yellowbtn.hold()) {
-    applyProfile(F("Mode 2 activated"), OnlineTime2, RelaxTime2, OffTime2);
-    return true;
+  applyProfile(F("Mode 2 activated"), OnlineTime2, RelaxTime2, OffTime2);
+  return true;
+}
+
+// Ждёт, пока отпустят красную и жёлтую кнопки, и сбрасывает их состояние
+void waitButtonsReleased() {
+  while (digitalRead(REDBUT) == LOW || digitalRead(YELLOWBUT) == LOW) {
+    redbtn.tick();
+    yellowbtn.tick();
   }
-  return false;
+  const uint32_t start = millis();
+  while (millis() - start < 100) {  // даём библиотеке обработать отпускание (антидребезг)
+    redbtn.tick();
+    yellowbtn.tick();
+  }
+  redbtn.resetState();
+  yellowbtn.resetState();
 }
 
 // Применяет уровень энергосбережения и возвращает стартовое состояние (режим Work)
@@ -185,6 +213,7 @@ void loop() {
     lcd.clear();
     lcd.setCursor(1, 0);
     lcd.print(F("Exit to menu"));
+    waitButtonsReleased();  // иначе удержанные кнопки сразу выберут быстрый профиль
   }
 
   // 2 секунды на выбор быстрого профиля: удерживайте энкодер, красную или жёлтую кнопку

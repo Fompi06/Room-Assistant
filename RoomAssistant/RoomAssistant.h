@@ -49,6 +49,7 @@ extern uint32_t lastSettingsSave;
 void loadGlyph(byte slot, const byte* glyphInFlash);
 void sleepFor(uint32_t ms);
 bool applyQuickProfile();
+void waitButtonsReleased();
 byte beginRun();
 
 // Menu.cpp — меню настройки

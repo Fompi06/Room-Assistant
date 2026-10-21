@@ -95,7 +95,7 @@ byte runModeEco(byte mode) {
       delay(10);
       const byte next = pollModeButtons(mode);
       if (next != NO_BUTTON) return STATE_ECO + next;
-      if (redbtn.held() && yellowbtn.held()) return STATE_EXIT_TO_MENU;
+      if (redbtn.hold() && yellowbtn.hold()) return STATE_EXIT_TO_MENU;  // hold() — состояние, а не событие: порядок нажатия не важен
       delay(10);
       if (handleEncoder(run.ui)) redrawDue = true;
     }

@@ -20,7 +20,7 @@ byte runModeNormal(byte mode) {
     while (millis() - secondStart < 1000) {
       const byte next = pollModeButtons(mode);
       if (next != NO_BUTTON) return STATE_NORMAL + next;
-      if (redbtn.held() && yellowbtn.held()) return STATE_EXIT_TO_MENU;
+      if (redbtn.hold() && yellowbtn.hold()) return STATE_EXIT_TO_MENU;  // hold() — состояние, а не событие: порядок нажатия не важен
 
       blinkLedIfMissed(run, ledStamp);
       if (handleEncoder(run.ui)) drawScreen(run, icon);

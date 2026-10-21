@@ -9,16 +9,24 @@ const byte MENU_ITEMS = 6;
 const int MAX_INTERVAL = 599;  // 9 ч 59 мин
 const uint16_t SETTINGS_SAVE_PERIOD = 5000;  // не чаще раза в 5 с, чтобы не изнашивать EEPROM
 
+// Экран меню перерисовывается только при изменениях: вывод на LCD по I2C медленный,
+// и если перерисовывать его на каждом проходе цикла, энкодер теряет щелчки.
+static bool menuDirty = true;
+
 // Ввод времени для режима which (MODE_WORK / MODE_RELAX / MODE_OFFLINE)
 static void editInterval(byte which) {
-  enc.tick();  // повторный опрос оставлен как в оригинале
-
   int& value = modeInterval[which];
+  const int before = value;
   if (enc.right()) value++;
   if (enc.left()) value--;
   if (enc.rightH()) value += 10;  // поворот с нажатой кнопкой — шаг 10 минут
   if (enc.leftH()) value -= 10;
   if (value > MAX_INTERVAL) value = MAX_INTERVAL;
+  if (value < 0) value = -1;
+  if (value != before) menuDirty = true;
+
+  if (!menuDirty) return;
+  menuDirty = false;
 
   lcd.setCursor(0, 0);
   switch (which) {
@@ -29,7 +37,6 @@ static void editInterval(byte which) {
 
   lcd.setCursor(0, 1);
   if (value < 0) {
-    value = -1;
     lcd.print(F("Default Settings"));
     return;
   }
@@ -140,20 +147,24 @@ static void drawMenuRow(byte row, byte item, bool selected) {
 }
 
 static void settingsMenu(byte& cursor) {
-  enc.tick();
   if (enc.right() && cursor < MENU_ITEMS - 1) {
     cursor++;
     btnsound();
+    menuDirty = true;
   }
   if (enc.left() && cursor > 0) {
     cursor--;
     btnsound();
+    menuDirty = true;
   }
   if (enc.click()) {
     btnsound();
     activateMenuItem(cursor);
+    menuDirty = true;
   }
 
+  if (!menuDirty) return;
+  menuDirty = false;
   loadGlyph(7, ICON_ARROW);
   const byte firstItem = cursor & ~1;  // на экране сразу два пункта
   drawMenuRow(0, firstItem, firstItem == cursor);
@@ -168,6 +179,7 @@ byte setupMode(bool& returnedFromRun) {
   if (returnedFromRun) {
     step = 0;
     returnedFromRun = false;
+    menuDirty = true;
   }
 
   enc.tick();
@@ -178,6 +190,7 @@ byte setupMode(bool& returnedFromRun) {
   if (enc.held()) {
     step++;
     btnsound();
+    menuDirty = true;
   }
 
   if (step < MODE_COUNT) {
