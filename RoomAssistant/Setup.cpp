@@ -109,6 +109,7 @@ void setup() {
 
   loadStorage();
   randomSeed(analogRead(0));
+  encoderBegin();
   dht.begin();
   lcd.init();
   lcd.backlight();
@@ -221,7 +222,7 @@ void loop() {
   lcd.blink();
   const uint32_t windowStart = millis();
   while (millis() - windowStart <= 2000) {
-    enc.tick();
+    encTick();
     redbtn.tick();
     yellowbtn.tick();
     if (enc.hold()) {
@@ -244,6 +245,7 @@ void loop() {
   lcd.noBacklight();
   lcd.noDisplay();
   sleepFor(3000);
+  clearTurns();  // повороты во время заставки и паузы не должны менять значения в меню
   digitalWrite(SEN_VCC, HIGH);
   delay(100);
   lcd.backlight();

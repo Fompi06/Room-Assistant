@@ -45,6 +45,13 @@ extern uint32_t lastSettingsSave;
 
 // ---------- Функции, которые вызываются из других модулей ----------
 
+// Input.cpp — энкодер
+void encoderBegin();
+void encTick();
+int8_t takeTurns();
+int8_t takeTurnsPressed();
+void clearTurns();
+
 // Setup.cpp — запуск, заставка, быстрые профили
 void loadGlyph(byte slot, const byte* glyphInFlash);
 void sleepFor(uint32_t ms);

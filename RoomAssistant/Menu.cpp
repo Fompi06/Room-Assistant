@@ -9,31 +9,31 @@ const byte MENU_ITEMS = 6;
 const int MAX_INTERVAL = 599;  // 9 ч 59 мин
 const uint16_t SETTINGS_SAVE_PERIOD = 5000;  // не чаще раза в 5 с, чтобы не изнашивать EEPROM
 
-// Экран меню перерисовывается только при изменениях: вывод на LCD по I2C медленный,
-// и если перерисовывать его на каждом проходе цикла, энкодер теряет щелчки.
-static bool menuDirty = true;
+// Экран меню перерисовывается только при изменениях: вывод на LCD по I2C медленный.
+static bool menuDirty = true;   // перерисовать весь экран
+static bool valueDirty = true;  // перерисовать только строку со значением
 
 // Ввод времени для режима which (MODE_WORK / MODE_RELAX / MODE_OFFLINE)
 static void editInterval(byte which) {
   int& value = modeInterval[which];
   const int before = value;
-  if (enc.right()) value++;
-  if (enc.left()) value--;
-  if (enc.rightH()) value += 10;  // поворот с нажатой кнопкой — шаг 10 минут
-  if (enc.leftH()) value -= 10;
+  value += takeTurns() + 10 * takeTurnsPressed();  // поворот с нажатой кнопкой — шаг 10 минут
   if (value > MAX_INTERVAL) value = MAX_INTERVAL;
   if (value < 0) value = -1;
-  if (value != before) menuDirty = true;
+  if (value != before) valueDirty = true;
 
-  if (!menuDirty) return;
-  menuDirty = false;
-
-  lcd.setCursor(0, 0);
-  switch (which) {
-    case MODE_WORK:    lcd.print(F("Set online time:")); break;
-    case MODE_RELAX:   lcd.print(F("Set relax time: ")); break;
-    default:           lcd.print(F("Set offline time")); break;
+  if (menuDirty) {
+    menuDirty = false;
+    valueDirty = true;
+    lcd.setCursor(0, 0);
+    switch (which) {
+      case MODE_WORK:    lcd.print(F("Set online time:")); break;
+      case MODE_RELAX:   lcd.print(F("Set relax time: ")); break;
+      default:           lcd.print(F("Set offline time")); break;
+    }
   }
+  if (!valueDirty) return;
+  valueDirty = false;
 
   lcd.setCursor(0, 1);
   if (value < 0) {
@@ -147,15 +147,17 @@ static void drawMenuRow(byte row, byte item, bool selected) {
 }
 
 static void settingsMenu(byte& cursor) {
-  if (enc.right() && cursor < MENU_ITEMS - 1) {
-    cursor++;
-    btnsound();
-    menuDirty = true;
-  }
-  if (enc.left() && cursor > 0) {
-    cursor--;
-    btnsound();
-    menuDirty = true;
+  const int8_t t = takeTurns();
+  takeTurnsPressed();  // повороты с нажатой кнопкой здесь не используются
+  if (t) {
+    int next = cursor + t;
+    if (next < 0) next = 0;
+    if (next > MENU_ITEMS - 1) next = MENU_ITEMS - 1;
+    if (next != cursor) {
+      cursor = next;
+      btnsound();
+      menuDirty = true;
+    }
   }
   if (enc.click()) {
     btnsound();
@@ -182,7 +184,7 @@ byte setupMode(bool& returnedFromRun) {
     menuDirty = true;
   }
 
-  enc.tick();
+  encTick();
   redbtn.tick();
   yellowbtn.tick();
   if (applyQuickProfile()) return beginRun();

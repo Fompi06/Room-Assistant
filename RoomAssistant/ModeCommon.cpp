@@ -292,65 +292,65 @@ static void addGlass() {
 
 // Опрашивает энкодер и обновляет UiState. Возвращает true, если было событие.
 bool handleEncoder(UiState& ui) {
-  if (!enc.tick()) return false;
+  encTick();
+  const int8_t t = takeTurns();          // повороты
+  const int8_t tp = takeTurnsPressed();  // повороты с нажатой кнопкой
+  const bool clicked = enc.click();
+  const bool held = enc.held();
+  const bool pressed = enc.getState() != 0;  // кнопка просто нажата — тоже действие
+  enc.resetState();
+  if (!t && !tp && !clicked && !held && !pressed) return false;
   idleSeconds = 0;
 
   // Листаем экраны
-  if (!ui.detail && enc.right()) {
+  if (t && !ui.detail) {
     btnsound();
-    ui.screen = (ui.screen + 1) % SCREEN_COUNT;
-    ui.needClear = true;
-  }
-  if (!ui.detail && enc.left()) {
-    btnsound();
-    ui.screen = (ui.screen == 0) ? SCREEN_COUNT - 1 : ui.screen - 1;
+    ui.screen = ((int)ui.screen + t % SCREEN_COUNT + SCREEN_COUNT) % SCREEN_COUNT;
     ui.needClear = true;
   }
   if (ui.cursor >= cursorCount(ui.screen)) ui.cursor = 0;
   const bool onGraph = ui.screen >= SCR_ONLINE;
 
-  // В подробном виде вращение меняет выбранную строку
-  if (ui.detail && ui.screen != SCR_WATER_STATS && (enc.right() || enc.left())) {
+  // В подробном виде вращение переключает выбранную строку
+  if (t && ui.detail && ui.screen != SCR_WATER_STATS && (t & 1)) {
     ui.lineSwap = !ui.lineSwap;
   }
 
-  // Счётчик воды
-  if (ui.screen == SCR_WATER && enc.click()) {
+  // Счётчик воды: клик — плюс стакан, удержание — сброс
+  if (ui.screen == SCR_WATER && clicked) {
     btnsound();
     addGlass();
   }
-  if (ui.screen == SCR_WATER && enc.held()) {
+  if (ui.screen == SCR_WATER && held) {
     btnsound();
     numberDrinks = 0;
   }
 
   // На графиках: удержание — сохранить «день»
-  if (onGraph && enc.held()) {
+  if (onGraph && held) {
     saveDay();
     ui.needClear = true;
   }
 
   // Поворот с нажатой кнопкой: выбор дня на графике или правка значения в подробном виде
-  if (onGraph && (enc.rightH() || enc.leftH())) {
+  if (onGraph && tp) {
     btnsound();
-    const int8_t dir = enc.rightH() ? 1 : -1;
+    const int8_t dir = tp > 0 ? 1 : -1;
     if (ui.detail) {
-      editValue(ui, dir);
+      for (int8_t i = 0; i != tp; i += dir) editValue(ui, dir);
     } else {
-      const byte count = cursorCount(ui.screen);
-      ui.cursor = (ui.cursor + count + dir) % count;
+      const int count = cursorCount(ui.screen);
+      ui.cursor = ((int)ui.cursor + tp % count + count) % count;
       ui.needClear = true;
     }
   }
 
   // Клик на графике открывает и закрывает подробный вид
-  if (onGraph && enc.click()) {
+  if (onGraph && clicked) {
     btnsound();
     ui.detail = !ui.detail;
     ui.lineSwap = false;
     ui.needClear = true;
   }
-
-  enc.resetState();
   return true;
 }
