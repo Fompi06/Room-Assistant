@@ -37,7 +37,7 @@ extern uint8_t waterIndex;
 
 extern uint16_t onlineSinceAlert;
 extern uint16_t sinceMissMin;
-extern uint16_t nextDrinkReminder;
+extern uint16_t minutesSinceDrink;
 
 extern volatile uint8_t idleSeconds;
 extern bool settingsDirty;

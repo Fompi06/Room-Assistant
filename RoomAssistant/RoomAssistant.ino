@@ -58,7 +58,7 @@ uint8_t waterIndex;
 // ---------- Таймеры напоминаний ----------
 uint16_t onlineSinceAlert;           // минут Work+Relax с последнего напоминания
 uint16_t sinceMissMin;               // минут с последнего пропущенного напоминания
-uint16_t nextDrinkReminder = reminderDrink;  // при какой сумме минут напомнить про воду
+uint16_t minutesSinceDrink;          // минут с последнего стакана или напоминания о воде
 
 // ---------- Прочее ----------
 volatile uint8_t idleSeconds;        // секунд без действий пользователя (для режима Eco)

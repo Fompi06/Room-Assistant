@@ -89,6 +89,7 @@ void buildModeIcon(byte* icon, byte mode, byte secCounter) {
 
 // Вызывается раз в минуту
 static void onMinutePassed(ModeRun& run) {
+  minutesSinceDrink++;
   run.minutes++;
   todayTime[run.mode]++;
   if (run.mode != MODE_OFFLINE) onlineSinceAlert++;
@@ -214,12 +215,10 @@ byte runAlert(ModeRun& run, byte stateBase) {
   return NEXT_NONE;
 }
 
-static uint16_t totalToday() {
-  return todayTime[MODE_WORK] + todayTime[MODE_RELAX] + todayTime[MODE_OFFLINE];
-}
-
+// Напоминание о воде считает реально прошедшие минуты, а не статистику дня,
+// которую можно поправить вручную на графиках
 bool drinkReminderDue() {
-  return totalToday() >= nextDrinkReminder;
+  return minutesSinceDrink >= reminderDrink;
 }
 
 void runDrinkReminder(ModeRun& run) {
@@ -239,7 +238,7 @@ void runDrinkReminder(ModeRun& run) {
   delay(1000);
   advanceSecond(run);
 
-  nextDrinkReminder = totalToday() + reminderDrink;
+  minutesSinceDrink = 0;
   run.ui.needClear = true;
 }
 
@@ -280,6 +279,7 @@ byte runPresenceCheck(ModeRun& run, byte stateBase) {
 // Стакан воды: на десятом — мелодия
 static void addGlass() {
   numberDrinks++;
+  minutesSinceDrink = 0;  // только что попили — следующее напоминание через reminderDrink минут
   if (numberDrinks == 10) {
     alarmTone(NOTE_B5, 150);
     delay(200);

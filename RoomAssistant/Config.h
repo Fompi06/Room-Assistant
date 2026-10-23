@@ -20,7 +20,7 @@
 #define RandomCheckupMin 10       // проверка присутствия в режиме Work: не раньше чем через N минут...
 #define RandomCheckupMax 50       // ...и не позже чем через N минут
 #define randomAlertTime 20        // максимальная случайная добавка к таймеру (отключается режимом Strict)
-#define reminderDrink 60          // напоминание выпить воды
+#define reminderDrink 60          // напомнить выпить воды через N минут после последнего стакана
 
 // Быстрый профиль 1 (красная кнопка) и 2 (жёлтая кнопка): Work / Relax / Offline
 #define OnlineTime1 90
