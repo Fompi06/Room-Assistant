@@ -213,12 +213,12 @@ static void drawDetail(byte screen, const UiState& ui) {
   const byte c = ui.cursor;
   switch (screen) {
     case SCR_ONLINE:
-      drawDetailRow(0, !ui.lineSwap, F("Online:"), timeRef(MODE_WORK, c) + timeRef(MODE_RELAX, c), F(" mins"));
-      drawDetailRow(1, ui.lineSwap, F("Offline:"), timeRef(MODE_OFFLINE, c), F(" mins"));
+      drawDetailRow(0, !ui.lineSwap, F("Online:"), timeRef(MODE_WORK, c) + timeRef(MODE_RELAX, c), F("m"));
+      drawDetailRow(1, ui.lineSwap, F("Offline:"), timeRef(MODE_OFFLINE, c), F("m"));
       break;
     case SCR_WORK_RELAX:
-      drawDetailRow(0, !ui.lineSwap, F("Work:"), timeRef(MODE_WORK, c), F(" mins"));
-      drawDetailRow(1, ui.lineSwap, F("Relax:"), timeRef(MODE_RELAX, c), F(" mins"));
+      drawDetailRow(0, !ui.lineSwap, F("Work:"), timeRef(MODE_WORK, c), F("m"));
+      drawDetailRow(1, ui.lineSwap, F("Relax:"), timeRef(MODE_RELAX, c), F("m"));
       break;
     case SCR_MISSED:
       drawDetailRow(0, !ui.lineSwap, F("Work missed:"), missedRef(0, c), nullptr);
