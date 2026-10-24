@@ -46,9 +46,17 @@ static void powerOff() {
 static void updatePowerState(PowerState& state) {
   if (idleSeconds < IDLE_LIGHT_SLEEP) {
     if (state != POWER_ACTIVE) {  // пользователь вернулся
+      const bool wasDark = (state == POWER_DISPLAY_OFF);
       disableWakeInterrupts();
       powerOn();
       state = POWER_ACTIVE;
+      if (wasDark) {
+        // Экран был погашен: нажатие или поворот только будят прибор и ничего не переключают
+        waitButtonsReleased();
+        clearTurns();
+        enc.resetState();
+        idleSeconds = 0;
+      }
     }
   } else if (state == POWER_ACTIVE) {
     enableWakeInterrupts();
